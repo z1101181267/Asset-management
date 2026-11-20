@@ -1,0 +1,299 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f0f2f5;
+}
+
+/* ===== 登录页 ===== */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('/bg-login.png') center / cover no-repeat fixed;
+  position: relative;
+}
+
+.login-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(8, 20, 45, 0.82) 0%, rgba(13, 36, 78, 0.62) 55%, rgba(8, 20, 45, 0.85) 100%);
+}
+
+.login-card {
+  position: relative;
+  width: 340px;
+  min-height: 380px;
+  background: rgba(15, 30, 60, 0.62);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-radius: 14px;
+  padding: 28px 30px 24px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+  color: #e8eef7;
+}
+
+/* 表单标签（账号/密码）白色加粗，背景上清晰可读 */
+.login-card .ant-form-item-label > label {
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-logo .icon-ring {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 35% 30%, #3b82f6, #1d3f8f);
+  box-shadow: 0 0 26px rgba(59, 130, 246, 0.55);
+  font-size: 32px;
+  color: #fff;
+}
+
+.login-logo h1 {
+  font-size: 21px;
+  margin: 0;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.login-logo p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #8fa8cc;
+  letter-spacing: 1px;
+}
+
+.login-card .ant-input,
+.login-card .ant-input-affix-wrapper {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(148, 180, 226, 0.35);
+  color: #eef4fd;
+}
+
+.login-card .ant-input-affix-wrapper .ant-input {
+  background: transparent;
+}
+
+.login-card .ant-input::placeholder {
+  color: #6d82a5;
+}
+
+.login-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  color: #7f95b8;
+  line-height: 1.9;
+}
+
+.login-hint code {
+  color: #9ec1f5;
+  background: rgba(148, 180, 226, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.login-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #5f7499;
+  z-index: 1;
+}
+
+/* ===== 主框架 ===== */
+.sider {
+  background: #0d1b34 !important;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.logo {
+  padding: 20px 18px 18px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logo-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.logo-sub {
+  color: #6f84a8;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.sider-footer {
+  margin-top: auto;
+  padding: 14px 18px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-header {
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-content {
+  padding: 20px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 56px - 46px);
+}
+
+.app-footer {
+  background: transparent;
+  text-align: center;
+  color: #8a97ab;
+  font-size: 12px;
+  padding: 10px;
+}
+
+.page-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px 22px;
+  box-shadow: 0 2px 8px rgba(0, 21, 41, 0.06);
+}
+
+.page-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1f2d45;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.table-ant {
+  width: 100%;
+}
+
+/* 资产详情 */
+.detail-section {
+  border: 1px solid #e6ebf3;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: #fbfcfe;
+}
+
+.detail-section-title {
+  font-weight: 600;
+  color: #24365a;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kv-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 34px;
+}
+
+.kv-item {
+  font-size: 13px;
+  color: #5a6a85;
+}
+
+.kv-item b {
+  color: #1f2d45;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+/* 权限变更记录 */
+.record-card {
+  border: 1px solid #e6ebf3;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.record-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px dashed #edf1f7;
+  flex-wrap: wrap;
+}
+
+.record-exec {
+  background: #f6f9fe;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0 16px 14px;
+  font-size: 13px;
+}
+
+.record-exec + .record-exec {
+  margin-top: 8px;
+}
+
+/* 配置管理 */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.config-block {
+  border: 1px solid #e6ebf3;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fbfcfe;
+}
+
+.config-block h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #24365a;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
