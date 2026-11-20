@@ -20,7 +20,8 @@ const JWT_SECRET = process.env.JWT_SECRET || (() => {
   }
 })();
 
-/* ---------- 登录限流：同一账号 15 分钟内失败 5 次锁定 ---------- */
+/* ---------- 登录限流：同一账号 30 秒内失败 5 次锁定 30 秒 ---------- */
+const LOCK_MS = 30 * 1000;
 const failMap = new Map(); // ip|user -> { count, until }
 export function checkRateLimit(ip, username) {
   const k = `${ip}|${username}`;
@@ -34,10 +35,10 @@ export function recordLoginFail(ip, username) {
   const k = `${ip}|${username}`;
   const now = Date.now();
   const rec = failMap.get(k);
-  if (!rec || now > rec.until) failMap.set(k, { count: 1, until: now + 15 * 60 * 1000 });
+  if (!rec || now > rec.until) failMap.set(k, { count: 1, until: now + LOCK_MS });
   else rec.count += 1;
   const cur = failMap.get(k);
-  if (cur.count >= 5) cur.until = now + 15 * 60 * 1000; // 达到 5 次失败即锁定 15 分钟
+  if (cur.count >= 5) cur.until = now + LOCK_MS; // 达到 5 次失败即锁定 30 秒
   return cur.count;
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Table,
   Button,
@@ -14,6 +14,7 @@ import {
   Tooltip,
   App as AntApp,
   Empty,
+  Progress,
 } from 'antd';
 import {
   PlusOutlined,
@@ -24,6 +25,8 @@ import {
   UserOutlined,
   DatabaseOutlined,
   EditOutlined,
+  UploadOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import {
   useAppData,
@@ -38,8 +41,10 @@ import {
   updateDatabase,
   removeDatabase,
   addAsset,
+  deleteAsset,
   updateAssetStatus,
 } from '../store';
+import { exportAssetsToExcel, parseExcelImport } from '../utils/excel.js';
 
 /* 高对比度数据库类型标签（深色底 + 白字） */
 export function DbTypeTag({ type }) {
@@ -759,6 +764,12 @@ export default function AssetsPage({ currentUser }) {
   const [detailId, setDetailId] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [filter, setFilter] = useState('');
+  const [exportBusy, setExportBusy] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importPreview, setImportPreview] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+  const fileRef = useRef(null);
   const isAdmin = currentUser.role === '管理员';
 
   // 服务端已按角色过滤，前端直接使用
@@ -809,18 +820,45 @@ export default function AssetsPage({ currentUser }) {
       ? [
           {
             title: '操作',
-            width: 90,
+            width: 150,
             render: (_, r) => (
-              <Button
-                type="link"
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDetailId(r.id);
-                }}
-              >
-                查看详情
-              </Button>
+              <Space size={4}>
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDetailId(r.id);
+                  }}
+                >
+                  查看详情
+                </Button>
+                <Popconfirm
+                  title={`删除资产设备「${r.name}」？`}
+                  description="将级联删除其数据库配置与账号（不可恢复）"
+                  onConfirm={async () => {
+                    try {
+                      await deleteAsset(r.id);
+                      message.success(`资产设备「${r.name}」已删除`);
+                    } catch (e) {
+                      message.error(e.message || '删除失败');
+                    }
+                  }}
+                  okText="删除"
+                  okButtonProps={{ danger: true }}
+                  cancelText="取消"
+                >
+                  <Button
+                    type="link"
+                    danger
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    删除
+                  </Button>
+                </Popconfirm>
+              </Space>
             ),
           },
         ]
@@ -847,6 +885,60 @@ export default function AssetsPage({ currentUser }) {
     message.success(`资产设备「${payload.name}」添加成功`);
   };
 
+  /* 导出 Excel（仅管理员：导出含明文账号密码，逐条服务端解密 + 审计） */
+  const handleExport = async () => {
+    setExportBusy(true);
+    try {
+      const n = await exportAssetsToExcel(assets, (id) =>
+        revealPassword(id, null, null)
+      );
+      message.success(`已导出 ${n} 台资产设备（含账号密码，注意保管文件）`);
+    } catch (e) {
+      message.error(e.message || '导出失败');
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
+  /* 导入：解析 Excel → 预览 → 逐条 addAsset */
+  const handleImportFile = async (file) => {
+    try {
+      const payloads = await parseExcelImport(file);
+      if (payloads.length === 0) {
+        message.warning('文件中没有可导入的资产（缺少「设备名称」列）');
+        return false;
+      }
+      setImportPreview(payloads);
+      setImportOpen(true);
+    } catch (e) {
+      message.error('文件解析失败：' + (e.message || e));
+    }
+    return false; // 阻止 Upload 默认上传行为
+  };
+
+  const doImport = async () => {
+    setImporting(true);
+    setImportProgress(0);
+    let ok = 0;
+    let fail = 0;
+    for (let i = 0; i < importPreview.length; i++) {
+      try {
+        await addAsset(importPreview[i]);
+        ok++;
+      } catch (e) {
+        fail++;
+      }
+      setImportProgress(Math.round(((i + 1) / importPreview.length) * 100));
+    }
+    setImporting(false);
+    setImportOpen(false);
+    setImportPreview([]);
+    setImportProgress(0);
+    message.success(
+      `导入完成：成功 ${ok} 台${fail ? `，失败 ${fail} 台` : ''}（密码已由服务端加密存储）`
+    );
+  };
+
   return (
     <div className="page-card">
       <div className="page-title">
@@ -865,9 +957,31 @@ export default function AssetsPage({ currentUser }) {
             onChange={(e) => setFilter(e.target.value)}
           />
           {isAdmin && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
-              新增资产设备
-            </Button>
+            <Space>
+              <Button
+                icon={<UploadOutlined />}
+                onClick={() => fileRef.current?.click()}
+              >
+                导入
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImportFile(f);
+                  e.target.value = '';
+                }}
+              />
+              <Button icon={<DownloadOutlined />} loading={exportBusy} onClick={handleExport}>
+                导出 Excel
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
+                新增资产设备
+              </Button>
+            </Space>
           )}
         </Space>
       </div>
@@ -888,11 +1002,76 @@ export default function AssetsPage({ currentUser }) {
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 台设备` }}
       />
 
-      {detailId && (
+      {isAdmin && detailId && (
         <AssetDetailDrawer asset={detailId} currentUser={currentUser} onClose={() => setDetailId(null)} />
       )}
 
-      {addOpen && <AddAssetModal open={addOpen} onCancel={() => setAddOpen(false)} onOk={handleAddAsset} />}
+      {isAdmin && addOpen && <AddAssetModal open={addOpen} onCancel={() => setAddOpen(false)} onOk={handleAddAsset} />}
+
+      {/* 导入预览：先展示解析结果，确认后再逐条写入（服务端 AES 加密存储） */}
+      {isAdmin && (
+      <Modal
+        title={
+          <Space>
+            <UploadOutlined /> 导入资产设备
+            <Tag>{importPreview.length} 条待导入</Tag>
+          </Space>
+        }
+        open={importOpen}
+        onCancel={() => {
+          if (!importing) {
+            setImportOpen(false);
+            setImportPreview([]);
+            setImportProgress(0);
+          }
+        }}
+        onOk={doImport}
+        okText="确认导入"
+        okButtonProps={{ loading: importing }}
+        cancelText="取消"
+        width={720}
+        destroyOnClose
+      >
+        <div style={{ marginBottom: 10, fontSize: 13, color: '#5a6a85' }}>
+          以下数据将被逐条创建为新资产设备；账号密码导入后由服务端 <b>AES-256-GCM 加密</b> 存储，列表默认密文展示。
+        </div>
+        {importing && (
+          <div style={{ marginBottom: 10 }}>
+            <Progress percent={importProgress} size="small" />
+          </div>
+        )}
+        <Table
+          rowKey={(r) => r.name}
+          size="small"
+          pagination={false}
+          dataSource={importPreview}
+          columns={[
+            { title: '设备名称', dataIndex: 'name', width: 140, render: (v) => <b>{v}</b> },
+            { title: 'IP', dataIndex: 'ip', width: 110 },
+            { title: '环境', dataIndex: 'envType', width: 70 },
+            {
+              title: '数据库',
+              width: 220,
+              render: (_, r) => (
+                <Space size={4} wrap>
+                  {(r.databases || []).map((d, i) => (
+                    <Tag key={i}>{`${d.dbType} ${d.dbVersion || ''} :${d.port || '-'}`}</Tag>
+                  ))}
+                  {(r.databases || []).length === 0 && <Tag>无</Tag>}
+                </Space>
+              ),
+            },
+            {
+              title: '账号数',
+              width: 90,
+              render: (_, r) => `${(r.serverAccounts || []).length} 服务器 / ${
+                (r.databases || []).reduce((n, d) => n + (d.dbAccounts || []).length, 0)
+              } 数据库`,
+            },
+          ]}
+        />
+      </Modal>
+      )}
     </div>
   );
 }

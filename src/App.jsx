@@ -95,19 +95,15 @@ export default function App() {
             user.role === '管理员' ? true : m.key !== 'systems' && m.key !== 'config'
           )}
           onClick={({ key }) => setActive(key)}
-          style={{ borderInlineEnd: 'none' }}
+          style={{ borderInlineEnd: 'none', flex: 1 }}
         />
         <div className="sider-footer">
-          <Space wrap>
-            <Tag color="blue">{user.username}</Tag>
-            <Tag>{user.role}</Tag>
-          </Space>
           <Button
             icon={<LogoutOutlined />}
             onClick={doLogout}
             block
             type="text"
-            style={{ color: '#cfd8e3', marginTop: 10 }}
+            style={{ color: '#cfd8e3' }}
           >
             退出登录
           </Button>
@@ -120,7 +116,7 @@ export default function App() {
           </Typography.Text>
           <Space>
             <Tag color="success">在线</Tag>
-            <Typography.Text style={{ color: '#cfd8e3' }}>
+            <Typography.Text strong style={{ color: '#fff' }}>
               {user.username}（{user.role}）
             </Typography.Text>
           </Space>
