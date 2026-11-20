@@ -66,13 +66,27 @@ export default function SystemsPage({ currentUser }) {
     }
   };
 
-  const [userLoading, setUserLoading] = useState(users.length === 0);
-  useEffect(() => {
-    if (isAdmin && users.length === 0) {
-      refreshUsers()
-        .catch(() => {})
-        .finally(() => setUserLoading(false));
+  const [userFetched, setUserFetched] = useState(false);
+  const [userRefreshing, setUserRefreshing] = useState(false);
+
+  /* 拉取账号列表：成功后打标记，避免重复请求；手动刷新不受标记限制 */
+  const fetchUsers = async (manual = false) => {
+    if (!isAdmin) return;
+    if (!manual && (userFetched || userRefreshing)) return;
+    setUserRefreshing(true);
+    try {
+      await refreshUsers();
+      setUserFetched(true);
+    } catch {
+      /* 拉取失败：不打标记，允许再次重试 */
+    } finally {
+      setUserRefreshing(false);
     }
+  };
+
+  /* 首次进入本页自动拉取；登录后的账号数据由 App 层按 user.username 预取，这里只兜底 */
+  useEffect(() => {
+    fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
@@ -214,9 +228,18 @@ export default function SystemsPage({ currentUser }) {
     <div className="page-card">
       <div className="page-title">
         <span>系统管理 · 账号管理</span>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
-          新增账号
-        </Button>
+        <Space>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => fetchUsers(true)}
+            loading={userRefreshing}
+          >
+            重新加载
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
+            新增账号
+          </Button>
+        </Space>
       </div>
 
       <div style={{ marginBottom: 12, fontSize: 13, color: '#5a6a85' }}>
@@ -230,8 +253,8 @@ export default function SystemsPage({ currentUser }) {
         columns={columns}
         dataSource={users}
         pagination={false}
-        loading={userLoading || busy}
-        locale={{ emptyText: '暂无账号' }}
+        loading={userRefreshing || busy}
+        locale={{ emptyText: userFetched ? '暂无账号' : '正在加载账号…' }}
       />
 
       {/* 操作审计日志（服务端存储，只增不删） */}

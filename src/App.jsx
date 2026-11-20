@@ -52,15 +52,17 @@ export default function App() {
   useEffect(() => {
     if (getToken()) {
       refreshBootstrap()
-        .then((user) => {
-          // 管理员拉取账号与审计
-          if (user?.role === '管理员') refreshUsers().catch(() => {});
-        })
         .catch(() => clearToken())
         .finally(() => setBooting(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 登录成功 / 会话恢复后，管理员预拉取账号列表，避免首进「系统管理」显示"暂无账号"
+  useEffect(() => {
+    if (user?.role === '管理员') refreshUsers().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.username]);
 
   const doLogout = () => {
     logout();
