@@ -5,14 +5,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stmts, db } from './db.js';
 
+// JWT 密钥持久化位置：支持 DB_DATA_DIR（打包后为 userData），否则默认 ../data
+const KEY_DIR = process.env.DB_DATA_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data');
+const keyFile = path.join(KEY_DIR, '.jwt-secret');
 const JWT_SECRET = process.env.JWT_SECRET || (() => {
   // 首次生成并持久化，避免重启后旧 token 失效
-  const keyFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data', '.jwt-secret');
   try {
     return fs.readFileSync(keyFile, 'utf8');
   } catch {
     const s = crypto.randomBytes(32).toString('hex');
-    fs.mkdirSync(path.dirname(keyFile), { recursive: true });
+    fs.mkdirSync(KEY_DIR, { recursive: true });
     fs.writeFileSync(keyFile, s, { mode: 0o600 });
     return s;
   }

@@ -1,27 +1,79 @@
 {
-  "name": "db-asset-agent",
+  "name": "db-asset-management",
   "private": true,
   "version": "1.1.0",
+  "description": "数据库资产设备管理（React + Express + SQLite，JWT 鉴权、字段级加密、操作审计）",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "electron": "electron .",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "electron:build:linux": "npm run build && electron-builder --linux",
+    "electron:build:all": "npm run build && electron-builder --win --linux"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.5.0",
-    "antd": "^5.21.0",
     "bcryptjs": "^2.4.3",
-    "dayjs": "^1.11.13",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "@ant-design/icons": "^5.5.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "antd": "^5.21.0",
+    "dayjs": "^1.11.13",
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "vite": "^5.4.0"
+  },
+  "build": {
+    "appId": "com.z1101181267.db-asset-management",
+    "productName": "数据库资产设备管理",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "src/constants.js",
+      "dist/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "server/**/*.js",
+      "src/constants.js",
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "DB-Asset-Management-Portable-${version}.exe"
+    },
+    "linux": {
+      "target": [
+        "rpm"
+      ],
+      "category": "Utility",
+      "maintainer": "z1101181267"
+    }
   }
 }
