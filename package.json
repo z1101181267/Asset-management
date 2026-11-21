@@ -1,7 +1,7 @@
 {
   "name": "db-asset-management",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "数据库资产设备管理（React + Express + SQLite，JWT 鉴权、字段级加密、操作审计）",
   "type": "module",
   "main": "electron/main.js",
